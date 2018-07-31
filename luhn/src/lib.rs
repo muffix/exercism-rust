@@ -1,26 +1,34 @@
 /// Check a Luhn checksum.
 pub fn is_valid(code: &str) -> bool {
-    let mut checksum = 0;
-    let mut i = 0;
+    let parsed = validate_input(code);
 
-    for c in code.chars().rev() {
-        if c == ' ' {
-            continue;
+    match parsed {
+        Some(input) => {
+            input
+                .chars()
+                .rev()
+                .filter_map(|c| c.to_digit(10))
+                .enumerate()
+                .map(|(i, d)| if i % 2 == 1 { luhn_double(d) } else { d })
+                .sum::<u32>() % 10 == 0
         }
-
-        if !c.is_digit(10) {
-            return false;
-        }
-
-        let digit = c.to_digit(10).unwrap() * ((i % 2) + 1);
-
-        checksum += digit;
-        if digit > 9 {
-            checksum -= 9
-        }
-
-        i += 1;
+        None => false,
     }
+}
 
-    i > 1 && checksum % 10 == 0
+fn luhn_double(d: u32) -> u32 {
+    if d * 2 > 9 {
+        d * 2 - 9
+    } else {
+        d * 2
+    }
+}
+
+fn validate_input(code: &str) -> Option<String> {
+    let cleaned = code.replace(" ", "");
+
+    if cleaned.parse::<i32>().is_ok() && cleaned.len() > 1 {
+        return Some(cleaned);
+    }
+    None
 }
