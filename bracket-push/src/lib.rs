@@ -1,22 +1,20 @@
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 
-pub struct Brackets {
-    string: String,
+pub struct Brackets<'a> {
+    string: &'a str,
 }
 
 static BRACKETS: &[(char, char)] = &[('(', ')'), ('[', ']'), ('{', '}')];
 
-impl<'a> From<&'a str> for Brackets {
-    fn from(input: &str) -> Self {
-        Brackets {
-            string: input.to_owned(),
-        }
+impl<'a> From<&'a str> for Brackets<'a> {
+    fn from(input: &'a str) -> Self {
+        Brackets { string: input }
     }
 }
 
-impl Brackets {
+impl<'a> Brackets<'a> {
     pub fn are_balanced(&self) -> bool {
-        let mut stack: LinkedList<char> = LinkedList::new();
+        let mut stack = VecDeque::new();
 
         for c in self.string.chars() {
             if let Some(b) = closing(c) {
@@ -33,12 +31,10 @@ impl Brackets {
 }
 
 fn closing(bracket: char) -> Option<char> {
-    for &(open, close) in BRACKETS {
-        if open == bracket {
-            return Some(close);
-        }
-    }
-    None
+    BRACKETS
+        .iter()
+        .find(|(open, _)| *open == bracket)
+        .map(|(_, close)| *close)
 }
 
 fn is_closing(bracket: char) -> bool {
