@@ -6,21 +6,26 @@ pub enum Comparison {
     Superlist,
 }
 
-pub fn sublist<T: PartialEq>(short_list: &[T], long_list: &[T]) -> Comparison {
+pub fn sublist<T: PartialEq>(list_a: &[T], list_b: &[T]) -> Comparison {
+    let mut swapped = false;
+    let (mut short_list, mut long_list) = (list_a, list_b);
+
+    if list_a.len() > list_b.len() {
+        long_list = list_a;
+        short_list = list_b;
+        swapped = true;
+    }
+
+    is_sublist(short_list, long_list, swapped)
+}
+
+fn is_sublist<T: PartialEq>(short_list: &[T], long_list: &[T], swapped: bool) -> Comparison {
     if short_list.len() == 0 {
         if long_list.len() == 0 {
             return Comparison::Equal;
         }
-        return Comparison::Sublist;
-    }
 
-    if short_list.len() > long_list.len() {
-        let result = sublist(long_list, short_list);
-        if result == Comparison::Sublist {
-            return Comparison::Superlist;
-        } else {
-            return result;
-        }
+        return if swapped { Comparison::Superlist } else { Comparison::Sublist };
     }
 
     let is_sublist = long_list
@@ -31,7 +36,7 @@ pub fn sublist<T: PartialEq>(short_list: &[T], long_list: &[T]) -> Comparison {
         if short_list.len() == long_list.len() {
             return Comparison::Equal;
         } else {
-            return Comparison::Sublist;
+            return if swapped { Comparison::Superlist } else { Comparison::Sublist };
         }
     }
 
