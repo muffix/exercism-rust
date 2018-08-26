@@ -1,0 +1,9 @@
+[package]
+name = "triangle"
+version = "0.0.0"
+
+[features]
+generic = []
+
+[dependencies]
+num = "0.2"
