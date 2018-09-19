@@ -20,9 +20,9 @@ impl<T> SimpleLinkedList<T> {
         self.count
     }
 
-    pub fn push(&mut self, _element: T) {
+    pub fn push(&mut self, element: T) {
         let node = Box::new(Node {
-            data: _element,
+            data: element,
             next: self.head.take(),
         });
         self.count += 1;
@@ -46,11 +46,11 @@ impl<T> SimpleLinkedList<T> {
 impl<T: Clone> SimpleLinkedList<T> {
     pub fn rev(&self) -> SimpleLinkedList<T> {
         let mut result = SimpleLinkedList::new();
-        let mut head = self.head.as_ref();
+        let mut head = &self.head;
 
         while let Some(node) = head {
             result.push(node.data.clone());
-            head = node.next.as_ref();
+            head = &node.next;
         }
 
         result
@@ -73,8 +73,9 @@ impl<T> Into<Vec<T>> for SimpleLinkedList<T> {
     fn into(mut self) -> Vec<T> {
         let mut result = Vec::new();
         while let Some(value) = self.pop() {
-            result.insert(0, value);
+            result.push(value);
         }
+        result.reverse();
         result
     }
 }
