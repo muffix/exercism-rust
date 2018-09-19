@@ -20,6 +20,9 @@ struct RankGroup {
     count: usize,
 }
 
+static SUITS: &[&str] = &["H", "S", "C", "D"];
+static RANKS: &[&str] = &["AceLow", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+
 impl PartialOrd for RankGroup {
     fn partial_cmp(&self, other: &RankGroup) -> Option<Ordering> {
         if self.count == other.count {
@@ -47,7 +50,7 @@ impl<'a> PartialOrd for Hand<'a> {
     fn partial_cmp(&self, other: &Hand) -> Option<Ordering> {
         let (self_highest, other_highest) = (self.highest_hand(), other.highest_hand());
         if self_highest == other_highest {
-            if let (Ok(ranks_self), Ok(ranks_other)) =
+            if let (Some(ranks_self), Some(ranks_other)) =
                 (self.straight_ranks(), other.straight_ranks())
             {
                 // If we have straights, the ace can be played low, so we need to compare the new ranks
@@ -66,16 +69,16 @@ impl<'a> From<&'a str> for Hand<'a> {
         let cards: Vec<_> = hand_string.split(" ").collect();
 
         let suits = cards.iter().map(|card| {
-            "H S C D"
-                .split(" ")
-                .position(|i| i == &card[card.len() - 1..])
+            SUITS
+                .iter()
+                .position(|i| *i == &card[card.len() - 1..])
                 .unwrap()
         });
 
         let ranks = cards.iter().map(|card| {
-            "AceLow 2 3 4 5 6 7 8 9 10 J Q K A"
-                .split(" ")
-                .position(|i| i == &card[..card.len() - 1])
+            RANKS
+                .iter()
+                .position(|i| *i == &card[..card.len() - 1])
                 .unwrap()
         });
 
@@ -115,7 +118,9 @@ impl<'a> From<&'a str> for Hand<'a> {
 
 impl<'a> Hand<'a> {
     fn highest_hand(&self) -> HighestHand {
-        if self.is_flush && self.is_straight() {
+        let is_straight = self.straight_ranks().is_some();
+
+        if self.is_flush && is_straight {
             return HighestHand::StraightFlush;
         }
 
@@ -131,7 +136,7 @@ impl<'a> Hand<'a> {
             return HighestHand::Flush;
         }
 
-        if self.is_straight() {
+        if is_straight {
             return HighestHand::Straight;
         }
 
@@ -150,7 +155,7 @@ impl<'a> Hand<'a> {
         HighestHand::HighCard
     }
 
-    fn straight_ranks(&self) -> Result<Vec<usize>, &str> {
+    fn straight_ranks(&self) -> Option<Vec<usize>> {
         let mut ranks = self.ranks.clone();
 
         if ranks[0] == 13 && ranks[1] == 4 {
@@ -161,18 +166,11 @@ impl<'a> Hand<'a> {
 
         for i in 1..5 {
             if ranks[i] != ranks[i - 1] - 1 {
-                return Err("Not a straight");
+                return None;
             }
         }
 
-        Ok(ranks)
-    }
-
-    fn is_straight(&self) -> bool {
-        match self.straight_ranks() {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        Some(ranks)
     }
 }
 
