@@ -1,23 +1,24 @@
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 pub fn anagrams_for<'a>(word: &str, possible_anagrams: &[&'a str]) -> HashSet<&'a str> {
     let lower_word = word.to_lowercase();
-    let letters = sorted_letters(word);
+    let letters = letters_count(word);
 
     possible_anagrams
         .into_iter()
         .filter_map(|&candidate| {
-            let candidate_letters = sorted_letters(candidate);
-            if letters == candidate_letters && lower_word != candidate.to_lowercase() {
-                Some(candidate)
-            } else {
-                None
+            match letters == letters_count(candidate) && lower_word != candidate.to_lowercase() {
+                true => Some(candidate),
+                false => None,
             }
         }).collect()
 }
 
-fn sorted_letters(word: &str) -> Vec<char> {
-    let mut letters: Vec<char> = word.to_lowercase().chars().collect();
-    letters.sort();
-    letters
+fn letters_count(word: &str) -> HashMap<char, usize> {
+    let mut map = HashMap::new();
+    for c in word.to_lowercase().chars() {
+        *map.entry(c).or_insert(0) += 1;
+    }
+    map
 }
